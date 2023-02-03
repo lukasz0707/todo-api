@@ -2,17 +2,18 @@ package api
 
 import (
 	"strconv"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/jackc/pgx/v5/pgtype"
 	db "github.com/lukasz0707/todo-api/db/sqlc"
 	"github.com/lukasz0707/todo-api/utils"
 )
 
 type createUserRequest struct {
 	Username string `json:"username" validate:"required,alphanumunicode,min=5,max=30"`
-	Password string `json:"password" validate:"required,min=8,alphanumunicode"`
+	Password string `json:"password" validate:"required,min=8"`
+	FullName string `json:"full_name" validate:"required,min=1,max=75"`
 	Email    string `json:"email" validate:"required,email"`
 }
 
@@ -40,6 +41,7 @@ func (server *Server) createUser(c *fiber.Ctx) error {
 	arg := db.CreateUserParams{
 		Username:       req.Username,
 		HashedPassword: hashedPassword,
+		FullName:       req.FullName,
 		Email:          req.Email,
 	}
 
@@ -63,11 +65,11 @@ type getUserRequest struct {
 }
 
 type getUserResponse struct {
-	ID                int64              `json:"id"`
-	Username          string             `json:"username"`
-	Email             string             `json:"email"`
-	PasswordChangedAt pgtype.Timestamptz `json:"password_changed_at"`
-	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	ID                int64     `json:"id"`
+	Username          string    `json:"username"`
+	Email             string    `json:"email"`
+	PasswordChangedAt time.Time `json:"password_changed_at"`
+	CreatedAt         time.Time `json:"created_at"`
 }
 
 func (server *Server) getUser(c *fiber.Ctx) error {

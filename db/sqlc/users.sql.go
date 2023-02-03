@@ -7,40 +7,48 @@ package db
 
 import (
 	"context"
-
-	"github.com/jackc/pgx/v5/pgtype"
+	"time"
 )
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
   username,
   hashed_password,
+  full_name,
   email
 ) VALUES (
-    $1, $2, $3
-) RETURNING id, username, email, password_changed_at, created_at
+    $1, $2, $3, $4
+) RETURNING id, username, full_name, email, password_changed_at, created_at
 `
 
 type CreateUserParams struct {
 	Username       string `json:"username"`
 	HashedPassword string `json:"hashed_password"`
+	FullName       string `json:"full_name"`
 	Email          string `json:"email"`
 }
 
 type CreateUserRow struct {
-	ID                int64              `json:"id"`
-	Username          string             `json:"username"`
-	Email             string             `json:"email"`
-	PasswordChangedAt pgtype.Timestamptz `json:"password_changed_at"`
-	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	ID                int64     `json:"id"`
+	Username          string    `json:"username"`
+	FullName          string    `json:"full_name"`
+	Email             string    `json:"email"`
+	PasswordChangedAt time.Time `json:"password_changed_at"`
+	CreatedAt         time.Time `json:"created_at"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error) {
-	row := q.db.QueryRow(ctx, createUser, arg.Username, arg.HashedPassword, arg.Email)
+	row := q.db.QueryRowContext(ctx, createUser,
+		arg.Username,
+		arg.HashedPassword,
+		arg.FullName,
+		arg.Email,
+	)
 	var i CreateUserRow
 	err := row.Scan(
 		&i.ID,
 		&i.Username,
+		&i.FullName,
 		&i.Email,
 		&i.PasswordChangedAt,
 		&i.CreatedAt,
@@ -54,7 +62,7 @@ WHERE id = $1 LIMIT 1
 `
 
 func (q *Queries) GetUser(ctx context.Context, id int64) (User, error) {
-	row := q.db.QueryRow(ctx, getUser, id)
+	row := q.db.QueryRowContext(ctx, getUser, id)
 	var i User
 	err := row.Scan(
 		&i.ID,

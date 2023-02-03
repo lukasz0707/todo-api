@@ -10,8 +10,8 @@ CREATE TABLE "users" (
 
 CREATE TABLE "todos" (
   "id" bigserial PRIMARY KEY,
-  "name" varchar NOT NULL,
-  "group" varchar NOT NULL,
+  "todo_name" varchar NOT NULL,
+  "group_name" varchar NOT NULL,
   "created_at" timestamptz NOT NULL DEFAULT (now()),
   "status" varchar NOT NULL DEFAULT 'ongoing',
   "deadline" timestamptz NOT NULL DEFAULT '0001-01-01 00:00:00Z'
@@ -30,7 +30,7 @@ CREATE INDEX ON "todos" ("deadline");
 
 CREATE INDEX ON "todos" ("status");
 
-CREATE INDEX ON "todos" ("name");
+CREATE INDEX ON "todos" ("todo_name");
 
 CREATE INDEX ON "users_todos" ("user_id");
 

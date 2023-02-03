@@ -9,7 +9,9 @@ import (
 )
 
 type Querier interface {
+	CreateTodo(ctx context.Context, arg CreateTodoParams) (Todo, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error)
+	CreateUsersTodos(ctx context.Context, arg CreateUsersTodosParams) (UsersTodo, error)
 	GetUser(ctx context.Context, id int64) (User, error)
 }
 

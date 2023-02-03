@@ -1,26 +1,26 @@
 package main
 
 import (
-	"context"
-	"fmt"
+	"database/sql"
 	"log"
-	"os"
 
-	"github.com/jackc/pgx/v5/pgxpool"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/lukasz0707/todo-api/api"
 	db "github.com/lukasz0707/todo-api/db/sqlc"
 )
 
 func main() {
-	dbpool, err := pgxpool.New(context.Background(), "postgresql://root:secret@localhost:5432/todo?sslmode=disable")
+	pool, err := sql.Open("pgx", "postgresql://root:secret@localhost:5432/todo?sslmode=disable")
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to create connection pool: %v\n", err)
-		os.Exit(1)
+		log.Fatal("unable to use data source name", err)
 	}
-	defer dbpool.Close()
+	defer pool.Close()
 
-	store := db.New(dbpool)
-	server, _ := api.NewServer(store)
+	store := db.NewStore(pool)
+	server, err := api.NewServer(store)
+	if err != nil {
+		log.Fatal("cannot create server:", err)
+	}
 
 	log.Fatal(server.Router.Listen(":3000"))
 }

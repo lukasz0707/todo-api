@@ -5,27 +5,27 @@
 package db
 
 import (
-	"github.com/jackc/pgx/v5/pgtype"
+	"time"
 )
 
 type Todo struct {
-	ID        int64              `json:"id"`
-	Name      string             `json:"name"`
-	Group     string             `json:"group"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	ID        int64     `json:"id"`
+	TodoName  string    `json:"todo_name"`
+	GroupName string    `json:"group_name"`
+	CreatedAt time.Time `json:"created_at"`
 	// oneof(ongoing, suspended, completed)
-	Status   string             `json:"status"`
-	Deadline pgtype.Timestamptz `json:"deadline"`
+	Status   string    `json:"status"`
+	Deadline time.Time `json:"deadline"`
 }
 
 type User struct {
-	ID                int64              `json:"id"`
-	Username          string             `json:"username"`
-	HashedPassword    string             `json:"hashed_password"`
-	FullName          string             `json:"full_name"`
-	Email             string             `json:"email"`
-	PasswordChangedAt pgtype.Timestamptz `json:"password_changed_at"`
-	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	ID                int64     `json:"id"`
+	Username          string    `json:"username"`
+	HashedPassword    string    `json:"hashed_password"`
+	FullName          string    `json:"full_name"`
+	Email             string    `json:"email"`
+	PasswordChangedAt time.Time `json:"password_changed_at"`
+	CreatedAt         time.Time `json:"created_at"`
 }
 
 type UsersTodo struct {

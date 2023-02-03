@@ -7,11 +7,11 @@ import (
 )
 
 type Server struct {
-	store  db.Querier
+	store  db.Store
 	Router *fiber.App
 }
 
-func NewServer(store db.Querier) (*Server, error) {
+func NewServer(store db.Store) (*Server, error) {
 	server := &Server{
 		store: store,
 	}
@@ -29,5 +29,7 @@ func (server *Server) setupRouter() *fiber.App {
 	})
 	app.Get("/users/:id", server.getUser)
 	app.Post("/users", server.createUser)
+
+	app.Post("/todo", server.createTodo)
 	return app
 }

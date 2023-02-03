@@ -10,6 +10,10 @@ import (
 
 var validate = validator.New()
 
+// func init() {
+// 	validate.RegisterValidation("notWhiteSpace", notWhiteSpace)
+// }
+
 // Validate validates the input struct
 func Validate(payload interface{}) error {
 	err := validate.Struct(payload)
@@ -28,3 +32,9 @@ func Validate(payload interface{}) error {
 
 	return nil
 }
+
+// // String should not contain white space
+// func notWhiteSpace(f1 validator.FieldLevel) bool {
+// 	return !strings.Contains(f1.Field().String(), " ")
+
+// }
