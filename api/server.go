@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/monitor"
 	db "github.com/lukasz0707/todo-api/db/sqlc"
 )
 
@@ -24,12 +25,13 @@ func NewServer(store db.Store) (*Server, error) {
 func (server *Server) setupRouter() *fiber.App {
 	app := fiber.New()
 	app.Use(logger.New())
+	app.Get("/metrics", monitor.New(monitor.Config{Title: "TodoApi Metrics Page"}))
+
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("Everything allright :)")
 	})
 	app.Get("/users/:id", server.getUser)
 	app.Post("/users", server.createUser)
 
-	app.Post("/todo", server.createTodo)
 	return app
 }

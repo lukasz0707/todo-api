@@ -11,10 +11,11 @@ import (
 )
 
 type createUserRequest struct {
-	Username string `json:"username" validate:"required,alphanumunicode,min=5,max=30"`
-	Password string `json:"password" validate:"required,min=8"`
-	FullName string `json:"full_name" validate:"required,min=1,max=75"`
-	Email    string `json:"email" validate:"required,email"`
+	Username  string `json:"username" validate:"required,alphanumunicode,min=5,max=30"`
+	Password  string `json:"password" validate:"required,min=8"`
+	FirstName string `json:"first_name" validate:"alphanumunicode,required,min=1,max=75"`
+	LastName  string `json:"last_name" validate:"alphanumunicode,required,min=1,max=75"`
+	Email     string `json:"email" validate:"required,email"`
 }
 
 // type createUserResponse struct {
@@ -41,7 +42,8 @@ func (server *Server) createUser(c *fiber.Ctx) error {
 	arg := db.CreateUserParams{
 		Username:       req.Username,
 		HashedPassword: hashedPassword,
-		FullName:       req.FullName,
+		FirstName:      req.FirstName,
+		LastName:       req.LastName,
 		Email:          req.Email,
 	}
 

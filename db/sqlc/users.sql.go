@@ -14,24 +14,27 @@ const createUser = `-- name: CreateUser :one
 INSERT INTO users (
   username,
   hashed_password,
-  full_name,
+  first_name,
+  last_name,
   email
 ) VALUES (
-    $1, $2, $3, $4
-) RETURNING id, username, full_name, email, password_changed_at, created_at
+    $1, $2, $3, $4, $5
+) RETURNING id, username, first_name, last_name, email, password_changed_at, created_at
 `
 
 type CreateUserParams struct {
 	Username       string `json:"username"`
 	HashedPassword string `json:"hashed_password"`
-	FullName       string `json:"full_name"`
+	FirstName      string `json:"first_name"`
+	LastName       string `json:"last_name"`
 	Email          string `json:"email"`
 }
 
 type CreateUserRow struct {
 	ID                int64     `json:"id"`
 	Username          string    `json:"username"`
-	FullName          string    `json:"full_name"`
+	FirstName         string    `json:"first_name"`
+	LastName          string    `json:"last_name"`
 	Email             string    `json:"email"`
 	PasswordChangedAt time.Time `json:"password_changed_at"`
 	CreatedAt         time.Time `json:"created_at"`
@@ -41,14 +44,16 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateU
 	row := q.db.QueryRowContext(ctx, createUser,
 		arg.Username,
 		arg.HashedPassword,
-		arg.FullName,
+		arg.FirstName,
+		arg.LastName,
 		arg.Email,
 	)
 	var i CreateUserRow
 	err := row.Scan(
 		&i.ID,
 		&i.Username,
-		&i.FullName,
+		&i.FirstName,
+		&i.LastName,
 		&i.Email,
 		&i.PasswordChangedAt,
 		&i.CreatedAt,
@@ -57,7 +62,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateU
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, username, hashed_password, full_name, email, password_changed_at, created_at FROM users
+SELECT id, username, hashed_password, first_name, last_name, email, password_changed_at, created_at FROM users
 WHERE id = $1 LIMIT 1
 `
 
@@ -68,7 +73,8 @@ func (q *Queries) GetUser(ctx context.Context, id int64) (User, error) {
 		&i.ID,
 		&i.Username,
 		&i.HashedPassword,
-		&i.FullName,
+		&i.FirstName,
+		&i.LastName,
 		&i.Email,
 		&i.PasswordChangedAt,
 		&i.CreatedAt,

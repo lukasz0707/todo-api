@@ -12,27 +12,34 @@ import (
 
 const createTodo = `-- name: CreateTodo :one
 INSERT INTO todos (
+  group_id,
   todo_name,
-  group_name,
+  status,
   deadline
 ) VALUES (
-    $1, $2, $3
-) RETURNING id, todo_name, group_name, created_at, status, deadline
+    $1, $2, $3, $4
+) RETURNING id, group_id, todo_name, created_at, status, deadline
 `
 
 type CreateTodoParams struct {
-	TodoName  string    `json:"todo_name"`
-	GroupName string    `json:"group_name"`
-	Deadline  time.Time `json:"deadline"`
+	GroupID  int64     `json:"group_id"`
+	TodoName string    `json:"todo_name"`
+	Status   string    `json:"status"`
+	Deadline time.Time `json:"deadline"`
 }
 
 func (q *Queries) CreateTodo(ctx context.Context, arg CreateTodoParams) (Todo, error) {
-	row := q.db.QueryRowContext(ctx, createTodo, arg.TodoName, arg.GroupName, arg.Deadline)
+	row := q.db.QueryRowContext(ctx, createTodo,
+		arg.GroupID,
+		arg.TodoName,
+		arg.Status,
+		arg.Deadline,
+	)
 	var i Todo
 	err := row.Scan(
 		&i.ID,
+		&i.GroupID,
 		&i.TodoName,
-		&i.GroupName,
 		&i.CreatedAt,
 		&i.Status,
 		&i.Deadline,

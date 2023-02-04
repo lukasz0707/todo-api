@@ -6,12 +6,31 @@ package db
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
+
+type Group struct {
+	ID        int64  `json:"id"`
+	GroupName string `json:"group_name"`
+	OwnerID   int64  `json:"owner_id"`
+}
+
+type Session struct {
+	ID           uuid.UUID `json:"id"`
+	UserID       int64     `json:"user_id"`
+	RefreshToken string    `json:"refresh_token"`
+	UserAgent    string    `json:"user_agent"`
+	ClientIp     string    `json:"client_ip"`
+	IsBlocked    bool      `json:"is_blocked"`
+	ExpiresAt    time.Time `json:"expires_at"`
+	CreatedAt    time.Time `json:"created_at"`
+}
 
 type Todo struct {
 	ID        int64     `json:"id"`
+	GroupID   int64     `json:"group_id"`
 	TodoName  string    `json:"todo_name"`
-	GroupName string    `json:"group_name"`
 	CreatedAt time.Time `json:"created_at"`
 	// oneof(ongoing, suspended, completed)
 	Status   string    `json:"status"`
@@ -22,15 +41,15 @@ type User struct {
 	ID                int64     `json:"id"`
 	Username          string    `json:"username"`
 	HashedPassword    string    `json:"hashed_password"`
-	FullName          string    `json:"full_name"`
+	FirstName         string    `json:"first_name"`
+	LastName          string    `json:"last_name"`
 	Email             string    `json:"email"`
 	PasswordChangedAt time.Time `json:"password_changed_at"`
 	CreatedAt         time.Time `json:"created_at"`
 }
 
-type UsersTodo struct {
-	ID             int64 `json:"id"`
-	UserID         int64 `json:"user_id"`
-	TodosID        int64 `json:"todos_id"`
-	HasPermissions bool  `json:"has_permissions"`
+type UsersGroup struct {
+	ID      int64 `json:"id"`
+	UserID  int64 `json:"user_id"`
+	GroupID int64 `json:"group_id"`
 }
