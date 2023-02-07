@@ -7,8 +7,12 @@ INSERT INTO users (
   email
 ) VALUES (
     $1, $2, $3, $4, $5
-) RETURNING id, username, first_name, last_name, email, password_changed_at, created_at;
+) RETURNING *;
 
--- name: GetUser :one
+-- name: GetUserByID :one
 SELECT * FROM users
 WHERE id = $1 LIMIT 1;
+
+-- name: GetUserByUsername :one
+SELECT * FROM users
+WHERE username = $1 LIMIT 1;

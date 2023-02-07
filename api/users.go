@@ -1,12 +1,15 @@
 package api
 
 import (
+	"database/sql"
+	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5/pgconn"
 	db "github.com/lukasz0707/todo-api/db/sqlc"
+	"github.com/lukasz0707/todo-api/token"
 	"github.com/lukasz0707/todo-api/utils"
 )
 
@@ -18,17 +21,33 @@ type createUserRequest struct {
 	Email     string `json:"email" validate:"required,email"`
 }
 
-// type createUserResponse struct {
-// 	Username string `json:"username"`
-// 	FullName string `json:"full_name"`
-// 	Email    string `json:"email"`
-// }
+type userResponse struct {
+	ID                int64     `json:"id"`
+	Username          string    `json:"username"`
+	FirstName         string    `json:"first_name"`
+	LastName          string    `json:"last_name"`
+	Email             string    `json:"email"`
+	PasswordChangedAt time.Time `json:"password_changed_at"`
+	CreatedAt         time.Time `json:"created_at"`
+}
+
+func newUserResponse(user db.User) userResponse {
+	return userResponse{
+		ID:                user.ID,
+		Username:          user.Username,
+		FirstName:         user.FirstName,
+		LastName:          user.LastName,
+		Email:             user.Email,
+		PasswordChangedAt: user.PasswordChangedAt,
+		CreatedAt:         user.CreatedAt,
+	}
+}
 
 func (server *Server) createUser(c *fiber.Ctx) error {
 	var req createUserRequest
 	err := c.BodyParser(&req)
 	if err != nil {
-		return utils.ErrorResponse(c, fiber.StatusBadRequest, "cannot parse json")
+		return utils.ErrorResponse(c, fiber.StatusBadRequest, utils.ErrorWrapper("cannot parse json", err))
 	}
 	if err := utils.Validate(req); err != nil {
 		return utils.ErrorResponse(c, fiber.StatusBadRequest, err.Error())
@@ -59,43 +78,91 @@ func (server *Server) createUser(c *fiber.Ctx) error {
 		}
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
 	}
-	return c.JSON(user)
+
+	resp := newUserResponse(user)
+
+	return c.JSON(resp)
 }
 
 type getUserRequest struct {
 	ID *int64 `validate:"required,min=0"`
 }
 
-type getUserResponse struct {
-	ID                int64     `json:"id"`
-	Username          string    `json:"username"`
-	Email             string    `json:"email"`
-	PasswordChangedAt time.Time `json:"password_changed_at"`
-	CreatedAt         time.Time `json:"created_at"`
-}
+func (server *Server) getUserByID(c *fiber.Ctx) error {
+	payload, ok := c.Locals("authorization_payload").(*token.Payload)
+	if !ok {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, "Locals authorization_payload error")
+	}
+	payloadUserID := payload.UserID
 
-func (server *Server) getUser(c *fiber.Ctx) error {
 	n, err := strconv.ParseInt(c.Params("id"), 10, 64)
 	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusBadRequest, err.Error())
 	}
+
+	if payloadUserID != n {
+		return utils.ErrorResponse(c, fiber.StatusUnauthorized, "you don't have permissions to access that data")
+	}
+
 	req := getUserRequest{ID: &n}
 	if err := utils.Validate(req); err != nil {
 		return utils.ErrorResponse(c, fiber.StatusBadRequest, err.Error())
 	}
-	user, err := server.store.GetUser(c.Context(), *req.ID)
+	user, err := server.store.GetUserByID(c.Context(), *req.ID)
 	if err != nil {
-		return utils.ErrorResponse(c, fiber.StatusBadRequest, err.Error())
+		if err == sql.ErrNoRows {
+			return utils.ErrorResponse(c, fiber.StatusNotFound, err.Error())
+		}
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
 	}
 
-	resp := getUserResponse{
-		ID:                user.ID,
-		Username:          user.Username,
-		Email:             user.Email,
-		PasswordChangedAt: user.PasswordChangedAt,
-		CreatedAt:         user.CreatedAt,
-	}
+	resp := newUserResponse(user)
 
 	return c.JSON(resp)
 
+}
+
+type loginUserRequest struct {
+	Username string `json:"username" validate:"required,alphanumunicode,min=5,max=30"`
+	Password string `json:"password" validate:"required,min=8"`
+}
+
+type loginUserResponse struct {
+	AccessToken string       `json:"access_token"`
+	User        userResponse `json:"user"`
+}
+
+func (server *Server) loginUser(c *fiber.Ctx) error {
+	var req loginUserRequest
+	err := c.BodyParser(&req)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusBadRequest, utils.ErrorWrapper("cannot parse json", err))
+	}
+
+	user, err := server.store.GetUserByUsername(c.Context(), req.Username)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			if server.config.Environment == "development" {
+				fmt.Println(utils.ErrorWrapper("username not found", err))
+			}
+			return utils.ErrorResponse(c, fiber.StatusUnauthorized, "invalid credentials")
+		}
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
+	}
+
+	err = utils.CheckPassword(req.Password, user.HashedPassword)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusUnauthorized, "invalid credentials")
+	}
+
+	accessToken, _, err := server.tokenMaker.CreateToken(user.ID, server.config.AccessTokenDuration)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
+	}
+
+	rsp := loginUserResponse{
+		AccessToken: accessToken,
+		User:        newUserResponse(user),
+	}
+	return c.JSON(rsp)
 }

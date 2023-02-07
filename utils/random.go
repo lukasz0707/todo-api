@@ -33,12 +33,12 @@ func RandomString(n int) string {
 
 // RandomOwner generates a random owner name
 func RandomOwner() string {
-	return RandomString(6)
+	return RandomString(8)
 }
 
 // RandomMoney generates a random amount of money
 
 // RandomEmail generates a random email
 func RandomEmail() string {
-	return fmt.Sprintf("%s@email.com", RandomString(6))
+	return fmt.Sprintf("%s@email.com", RandomString(8))
 }
