@@ -4,12 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"time"
 )
 
 // Store defines all functions to execute db queries and transactions
 type Store interface {
 	Querier
-	// CreateTodoTx(ctx context.Context, arg CreateTodoTxParams) (CreateTodoTxResult, error)
+	CreateTodoTx(ctx context.Context, arg CreateTodoTxParams) (CreateTodoTxResult, error)
 }
 
 // SQLStore provides all functions to execute SQL queries and transactions
@@ -45,40 +46,40 @@ func (store *SQLStore) execTx(ctx context.Context, fn func(*Queries) error) erro
 	return tx.Commit()
 }
 
-// type CreateTodoTxParams struct {
-// 	UserID    int64     `json:"user_id"`
-// 	TodoName  string    `json:"todo_name"`
-// 	GroupName string    `json:"group_name"`
-// 	Deadline  time.Time `json:"deadline"`
-// }
+type CreateTodoTxParams struct {
+	UserID    int64     `json:"user_id"`
+	TodoName  string    `json:"todo_name"`
+	GroupName string    `json:"group_name"`
+	Deadline  time.Time `json:"deadline"`
+}
 
-// type CreateTodoTxResult struct {
-// 	Todo      Todo      `json:"todo"`
-// 	UsersTodo UsersTodo `json:"users_todo"`
-// }
+type CreateTodoTxResult struct {
+	Todo  Todo  `json:"todo"`
+	Group Group `json:"group"`
+}
 
-// func (store *SQLStore) CreateTodoTx(ctx context.Context, arg CreateTodoTxParams) (CreateTodoTxResult, error) {
-// 	var result CreateTodoTxResult
-// 	err := store.execTx(ctx, func(q *Queries) error {
-// 		var err error
-// 		result.Todo, err = q.CreateTodo(ctx, CreateTodoParams{
-// 			TodoName:  arg.TodoName,
-// 			GroupName: arg.GroupName,
-// 			Deadline:  arg.Deadline,
-// 		})
-// 		if err != nil {
-// 			return err
-// 		}
-// 		result.UsersTodo, err = q.CreateUsersTodos(ctx, CreateUsersTodosParams{
-// 			UserID:         arg.UserID,
-// 			TodosID:        result.Todo.ID,
-// 			HasPermissions: true,
-// 		})
-// 		if err != nil {
-// 			return err
-// 		}
+func (store *SQLStore) CreateTodoTx(ctx context.Context, arg CreateTodoTxParams) (CreateTodoTxResult, error) {
+	var result CreateTodoTxResult
+	err := store.execTx(ctx, func(q *Queries) error {
+		var err error
+		result.Group, err = q.CreateGroup(ctx, CreateGroupParams{
+			GroupName: arg.GroupName,
+			OwnerID:   arg.UserID,
+		})
+		if err != nil {
+			return err
+		}
 
-// 		return nil
-// 	})
-// 	return result, err
-// }
+		result.Todo, err = q.CreateTodo(ctx, CreateTodoParams{
+			GroupID:  result.Group.ID,
+			TodoName: arg.TodoName,
+			Deadline: arg.Deadline,
+		})
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	return result, err
+}

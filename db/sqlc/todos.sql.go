@@ -14,27 +14,20 @@ const createTodo = `-- name: CreateTodo :one
 INSERT INTO todos (
   group_id,
   todo_name,
-  status,
   deadline
 ) VALUES (
-    $1, $2, $3, $4
+    $1, $2, $3
 ) RETURNING id, group_id, todo_name, created_at, status, deadline
 `
 
 type CreateTodoParams struct {
 	GroupID  int64     `json:"group_id"`
 	TodoName string    `json:"todo_name"`
-	Status   string    `json:"status"`
 	Deadline time.Time `json:"deadline"`
 }
 
 func (q *Queries) CreateTodo(ctx context.Context, arg CreateTodoParams) (Todo, error) {
-	row := q.db.QueryRowContext(ctx, createTodo,
-		arg.GroupID,
-		arg.TodoName,
-		arg.Status,
-		arg.Deadline,
-	)
+	row := q.db.QueryRowContext(ctx, createTodo, arg.GroupID, arg.TodoName, arg.Deadline)
 	var i Todo
 	err := row.Scan(
 		&i.ID,

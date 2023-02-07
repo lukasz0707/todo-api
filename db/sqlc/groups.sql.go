@@ -9,7 +9,7 @@ import (
 	"context"
 )
 
-const creategroup = `-- name: Creategroup :one
+const createGroup = `-- name: CreateGroup :one
 INSERT INTO groups (
   group_name,
   owner_id
@@ -18,13 +18,13 @@ INSERT INTO groups (
 )RETURNING id, group_name, owner_id
 `
 
-type CreategroupParams struct {
+type CreateGroupParams struct {
 	GroupName string `json:"group_name"`
 	OwnerID   int64  `json:"owner_id"`
 }
 
-func (q *Queries) Creategroup(ctx context.Context, arg CreategroupParams) (Group, error) {
-	row := q.db.QueryRowContext(ctx, creategroup, arg.GroupName, arg.OwnerID)
+func (q *Queries) CreateGroup(ctx context.Context, arg CreateGroupParams) (Group, error) {
+	row := q.db.QueryRowContext(ctx, createGroup, arg.GroupName, arg.OwnerID)
 	var i Group
 	err := row.Scan(&i.ID, &i.GroupName, &i.OwnerID)
 	return i, err

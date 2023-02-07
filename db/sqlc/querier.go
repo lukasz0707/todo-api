@@ -9,9 +9,10 @@ import (
 )
 
 type Querier interface {
+	AssignUserToGroup(ctx context.Context, arg AssignUserToGroupParams) (UsersGroup, error)
+	CreateGroup(ctx context.Context, arg CreateGroupParams) (Group, error)
 	CreateTodo(ctx context.Context, arg CreateTodoParams) (Todo, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
-	Creategroup(ctx context.Context, arg CreategroupParams) (Group, error)
 	GetUserByID(ctx context.Context, id int64) (User, error)
 	GetUserByUsername(ctx context.Context, username string) (User, error)
 }

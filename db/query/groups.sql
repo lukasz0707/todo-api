@@ -1,4 +1,4 @@
--- name: Creategroup :one
+-- name: CreateGroup :one
 INSERT INTO groups (
   group_name,
   owner_id
