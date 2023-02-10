@@ -41,10 +41,6 @@ func (server *Server) renewAccessToken(c *fiber.Ctx) error {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
 	}
 
-	if session.IsBlocked {
-		return utils.ErrorResponse(c, fiber.StatusUnauthorized, "session is blocked")
-	}
-
 	if session.UserID != refreshPayload.UserID {
 		return utils.ErrorResponse(c, fiber.StatusUnauthorized, "incorrect session user")
 	}

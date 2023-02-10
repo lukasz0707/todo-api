@@ -19,11 +19,10 @@ INSERT INTO sessions (
   refresh_token,
   user_agent,
   client_ip,
-  is_blocked,
   expires_at
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7
-) RETURNING id, user_id, refresh_token, user_agent, client_ip, is_blocked, expires_at, created_at
+    $1, $2, $3, $4, $5, $6
+) RETURNING id, user_id, refresh_token, user_agent, client_ip, expires_at, created_at
 `
 
 type CreateSessionParams struct {
@@ -32,7 +31,6 @@ type CreateSessionParams struct {
 	RefreshToken string    `json:"refresh_token"`
 	UserAgent    string    `json:"user_agent"`
 	ClientIp     string    `json:"client_ip"`
-	IsBlocked    bool      `json:"is_blocked"`
 	ExpiresAt    time.Time `json:"expires_at"`
 }
 
@@ -43,7 +41,6 @@ func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (S
 		arg.RefreshToken,
 		arg.UserAgent,
 		arg.ClientIp,
-		arg.IsBlocked,
 		arg.ExpiresAt,
 	)
 	var i Session
@@ -53,15 +50,24 @@ func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (S
 		&i.RefreshToken,
 		&i.UserAgent,
 		&i.ClientIp,
-		&i.IsBlocked,
 		&i.ExpiresAt,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
+const deleteSession = `-- name: DeleteSession :exec
+SELECT id, user_id, refresh_token, user_agent, client_ip, expires_at, created_at FROM sessions
+WHERE id = $1 LIMIT 1
+`
+
+func (q *Queries) DeleteSession(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteSession, id)
+	return err
+}
+
 const getSession = `-- name: GetSession :one
-SELECT id, user_id, refresh_token, user_agent, client_ip, is_blocked, expires_at, created_at FROM sessions
+SELECT id, user_id, refresh_token, user_agent, client_ip, expires_at, created_at FROM sessions
 WHERE id = $1 LIMIT 1
 `
 
@@ -74,7 +80,6 @@ func (q *Queries) GetSession(ctx context.Context, id uuid.UUID) (Session, error)
 		&i.RefreshToken,
 		&i.UserAgent,
 		&i.ClientIp,
-		&i.IsBlocked,
 		&i.ExpiresAt,
 		&i.CreatedAt,
 	)
@@ -82,7 +87,7 @@ func (q *Queries) GetSession(ctx context.Context, id uuid.UUID) (Session, error)
 }
 
 const getSessionByUserID = `-- name: GetSessionByUserID :one
-SELECT id, user_id, refresh_token, user_agent, client_ip, is_blocked, expires_at, created_at FROM sessions
+SELECT id, user_id, refresh_token, user_agent, client_ip, expires_at, created_at FROM sessions
 WHERE user_id = $1 LIMIT 1
 `
 
@@ -95,7 +100,6 @@ func (q *Queries) GetSessionByUserID(ctx context.Context, userID int64) (Session
 		&i.RefreshToken,
 		&i.UserAgent,
 		&i.ClientIp,
-		&i.IsBlocked,
 		&i.ExpiresAt,
 		&i.CreatedAt,
 	)

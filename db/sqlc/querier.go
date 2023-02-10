@@ -16,8 +16,10 @@ type Querier interface {
 	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
 	CreateTodo(ctx context.Context, arg CreateTodoParams) (Todo, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteSession(ctx context.Context, id uuid.UUID) error
 	GetSession(ctx context.Context, id uuid.UUID) (Session, error)
 	GetSessionByUserID(ctx context.Context, userID int64) (Session, error)
+	GetTodos(ctx context.Context, groupID int64) ([]Todo, error)
 	GetUserByID(ctx context.Context, id int64) (User, error)
 	GetUserByUsername(ctx context.Context, username string) (User, error)
 }

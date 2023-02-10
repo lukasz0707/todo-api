@@ -176,7 +176,6 @@ func (server *Server) loginUser(c *fiber.Ctx) error {
 		RefreshToken: refreshToken,
 		UserAgent:    string(c.Context().UserAgent()),
 		ClientIp:     c.IP(),
-		IsBlocked:    false,
 		ExpiresAt:    refreshPayload.ExpiredAt,
 	})
 	if err != nil {

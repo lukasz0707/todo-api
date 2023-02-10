@@ -39,3 +39,37 @@ func (q *Queries) CreateTodo(ctx context.Context, arg CreateTodoParams) (Todo, e
 	)
 	return i, err
 }
+
+const getTodos = `-- name: GetTodos :many
+SELECT id, group_id, todo_name, created_at, status, deadline FROM todos WHERE group_id = $1
+`
+
+func (q *Queries) GetTodos(ctx context.Context, groupID int64) ([]Todo, error) {
+	rows, err := q.db.QueryContext(ctx, getTodos, groupID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Todo{}
+	for rows.Next() {
+		var i Todo
+		if err := rows.Scan(
+			&i.ID,
+			&i.GroupID,
+			&i.TodoName,
+			&i.CreatedAt,
+			&i.Status,
+			&i.Deadline,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
