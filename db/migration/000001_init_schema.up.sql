@@ -57,6 +57,8 @@ CREATE INDEX ON "users_groups" ("group_id");
 
 CREATE UNIQUE INDEX ON "users_groups" ("user_id", "group_id");
 
+CREATE INDEX ON "sessions" ("user_id");
+
 COMMENT ON COLUMN "todos"."status" IS 'oneof(ongoing, suspended, completed)';
 
 ALTER TABLE "todos" ADD FOREIGN KEY ("group_id") REFERENCES "groups" ("id");

@@ -6,13 +6,18 @@ package db
 
 import (
 	"context"
+
+	"github.com/google/uuid"
 )
 
 type Querier interface {
 	AssignUserToGroup(ctx context.Context, arg AssignUserToGroupParams) (UsersGroup, error)
 	CreateGroup(ctx context.Context, arg CreateGroupParams) (Group, error)
+	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
 	CreateTodo(ctx context.Context, arg CreateTodoParams) (Todo, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	GetSession(ctx context.Context, id uuid.UUID) (Session, error)
+	GetSessionByUserID(ctx context.Context, userID int64) (Session, error)
 	GetUserByID(ctx context.Context, id int64) (User, error)
 	GetUserByUsername(ctx context.Context, username string) (User, error)
 }

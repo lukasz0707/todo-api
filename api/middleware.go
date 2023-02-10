@@ -38,6 +38,10 @@ func authMiddleware(tokenMaker token.Maker) fiber.Handler {
 			return utils.ErrorResponse(c, fiber.StatusUnauthorized, err.Error())
 		}
 
+		if payload.TokenType != "access_token" {
+			return utils.ErrorResponse(c, fiber.StatusUnauthorized, "wrong token type")
+		}
+
 		c.Locals(authorizationPayloadKey, payload)
 		return c.Next()
 	}

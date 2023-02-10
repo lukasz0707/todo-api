@@ -44,10 +44,12 @@ func (server *Server) setupRouter() *fiber.App {
 	})
 	app.Post("/v1/users", server.createUser)
 	app.Post("/v1/users/login", server.loginUser)
+	app.Post("/v1/tokens/renew_access", server.renewAccessToken)
 
 	appAuth := app.Group("/v1", authMiddleware(server.tokenMaker))
 	appAuth.Get("/users/:id", server.getUserByID)
 	appAuth.Post("/todo", server.createTodo)
+
 	appAdmin := appAuth.Group("/", authAdmin())
 	appAdmin.Get("/metrics", monitor.New(monitor.Config{Title: "TodoApi Metrics Page"}))
 
