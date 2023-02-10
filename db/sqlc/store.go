@@ -54,8 +54,9 @@ type CreateTodoTxParams struct {
 }
 
 type CreateTodoTxResult struct {
-	Todo  Todo  `json:"todo"`
-	Group Group `json:"group"`
+	Todo      Todo       `json:"todo"`
+	Group     Group      `json:"group"`
+	UserGroup UsersGroup `json:"user_group"`
 }
 
 func (store *SQLStore) CreateTodoTx(ctx context.Context, arg CreateTodoTxParams) (CreateTodoTxResult, error) {
@@ -79,7 +80,16 @@ func (store *SQLStore) CreateTodoTx(ctx context.Context, arg CreateTodoTxParams)
 			return err
 		}
 
+		result.UserGroup, err = q.AssignUserToGroup(ctx, AssignUserToGroupParams{
+			UserID:  arg.UserID,
+			GroupID: result.Group.ID,
+		})
+		if err != nil {
+			return err
+		}
+
 		return nil
+
 	})
 	return result, err
 }

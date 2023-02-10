@@ -18,3 +18,7 @@ WHERE id = $1 LIMIT 1;
 -- name: GetSessionByUserID :one
 SELECT * FROM sessions
 WHERE user_id = $1 LIMIT 1;
+
+-- name: DeleteSession :exec
+SELECT * FROM sessions
+WHERE id = $1 LIMIT 1;

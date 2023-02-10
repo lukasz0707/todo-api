@@ -16,7 +16,7 @@ type CreateTodoRequest struct {
 	Deadline  time.Time `json:"deadline"`
 }
 
-func (server *Server) createTodo(c *fiber.Ctx) error {
+func (server *Server) createTodoAndGroup(c *fiber.Ctx) error {
 	var req CreateTodoRequest
 	err := c.BodyParser(&req)
 	if err != nil {

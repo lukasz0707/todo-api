@@ -6,7 +6,8 @@ CREATE TABLE "users" (
   "last_name" varchar NOT NULL,
   "email" varchar UNIQUE NOT NULL,
   "password_changed_at" timestamptz NOT NULL DEFAULT (now()),
-  "created_at" timestamptz NOT NULL DEFAULT (now())
+  "created_at" timestamptz NOT NULL DEFAULT (now()),
+  "is_blocked" boolean NOT NULL DEFAULT false
 );
 
 CREATE TABLE "todos" (
@@ -36,7 +37,6 @@ CREATE TABLE "sessions" (
   "refresh_token" varchar NOT NULL,
   "user_agent" varchar NOT NULL,
   "client_ip" varchar NOT NULL,
-  "is_blocked" boolean NOT NULL DEFAULT false,
   "expires_at" timestamptz NOT NULL,
   "created_at" timestamptz NOT NULL DEFAULT (now())
 );
@@ -61,12 +61,12 @@ CREATE INDEX ON "sessions" ("user_id");
 
 COMMENT ON COLUMN "todos"."status" IS 'oneof(ongoing, suspended, completed)';
 
-ALTER TABLE "todos" ADD FOREIGN KEY ("group_id") REFERENCES "groups" ("id");
+ALTER TABLE "todos" ADD FOREIGN KEY ("group_id") REFERENCES "groups" ("id") ON DELETE CASCADE;
 
-ALTER TABLE "groups" ADD FOREIGN KEY ("owner_id") REFERENCES "users" ("id");
+ALTER TABLE "groups" ADD FOREIGN KEY ("owner_id") REFERENCES "users" ("id") ON DELETE CASCADE;
 
-ALTER TABLE "users_groups" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
+ALTER TABLE "users_groups" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE;
 
-ALTER TABLE "users_groups" ADD FOREIGN KEY ("group_id") REFERENCES "groups" ("id");
+ALTER TABLE "users_groups" ADD FOREIGN KEY ("group_id") REFERENCES "groups" ("id") ON DELETE CASCADE;
 
-ALTER TABLE "sessions" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
+ALTER TABLE "sessions" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE;
