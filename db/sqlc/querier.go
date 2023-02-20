@@ -23,6 +23,7 @@ type Querier interface {
 	GetTodos(ctx context.Context, groupID int64) ([]Todo, error)
 	GetUserByID(ctx context.Context, id int64) (User, error)
 	GetUserByUsername(ctx context.Context, username string) (User, error)
+	SelectFromUsersGroups(ctx context.Context, arg SelectFromUsersGroupsParams) (UsersGroup, error)
 }
 
 var _ Querier = (*Queries)(nil)

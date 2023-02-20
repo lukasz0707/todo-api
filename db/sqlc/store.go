@@ -11,6 +11,7 @@ import (
 type Store interface {
 	Querier
 	CreateTodoTx(ctx context.Context, arg CreateTodoTxParams) (CreateTodoTxResult, error)
+	CreateGroupTx(ctx context.Context, arg CreateGroupTxParams) (CreateGroupTxResult, error)
 }
 
 // SQLStore provides all functions to execute SQL queries and transactions
@@ -47,15 +48,14 @@ func (store *SQLStore) execTx(ctx context.Context, fn func(*Queries) error) erro
 }
 
 type CreateTodoTxParams struct {
-	UserID    int64     `json:"user_id"`
-	TodoName  string    `json:"todo_name"`
-	GroupName string    `json:"group_name"`
-	Deadline  time.Time `json:"deadline"`
+	UserID   int64     `json:"user_id"`
+	TodoName string    `json:"todo_name"`
+	GroupID  int64     `json:"group_id"`
+	Deadline time.Time `json:"deadline"`
 }
 
 type CreateTodoTxResult struct {
 	Todo      Todo       `json:"todo"`
-	Group     Group      `json:"group"`
 	UserGroup UsersGroup `json:"user_group"`
 }
 
@@ -63,21 +63,50 @@ func (store *SQLStore) CreateTodoTx(ctx context.Context, arg CreateTodoTxParams)
 	var result CreateTodoTxResult
 	err := store.execTx(ctx, func(q *Queries) error {
 		var err error
-		result.Group, err = q.CreateGroup(ctx, arg.GroupName)
+
+		result.UserGroup, err = q.SelectFromUsersGroups(ctx, SelectFromUsersGroupsParams{
+			UserID:  arg.UserID,
+			GroupID: arg.GroupID,
+		})
 		if err != nil {
 			return err
 		}
 
 		result.Todo, err = q.CreateTodo(ctx, CreateTodoParams{
-			GroupID:  result.Group.ID,
+			GroupID:  arg.GroupID,
 			TodoName: arg.TodoName,
 			Deadline: arg.Deadline,
 		})
 		if err != nil {
 			return err
 		}
+		return nil
 
-		result.UserGroup, err = q.AssignUserToGroup(ctx, AssignUserToGroupParams{
+	})
+	return result, err
+}
+
+type CreateGroupTxParams struct {
+	UserID    int64
+	GroupName string
+}
+
+type CreateGroupTxResult struct {
+	Group     Group      `json:"group"`
+	UserGroup UsersGroup `json:"user_group"`
+}
+
+func (store *SQLStore) CreateGroupTx(ctx context.Context, arg CreateGroupTxParams) (CreateGroupTxResult, error) {
+	var result CreateGroupTxResult
+	err := store.execTx(ctx, func(q *Queries) error {
+		var err error
+
+		result.Group, err = q.CreateGroup(ctx, arg.GroupName)
+		if err != nil {
+			return err
+		}
+
+		result.UserGroup, err = q.AssignOwnerToGroup(ctx, AssignOwnerToGroupParams{
 			UserID:  arg.UserID,
 			GroupID: result.Group.ID,
 		})

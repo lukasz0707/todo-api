@@ -1,9 +1,7 @@
 package api
 
 import (
-	"database/sql"
 	"fmt"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 	db "github.com/lukasz0707/todo-api/db/sqlc"
@@ -11,14 +9,12 @@ import (
 	"github.com/lukasz0707/todo-api/utils"
 )
 
-type CreateTodoRequest struct {
-	TodoName string    `json:"todo_name" validate:"required"`
-	GroupID  int64     `json:"group_id" validate:"required"`
-	Deadline time.Time `json:"deadline"`
+type CreateGroupRequest struct {
+	GroupName string `json:"group_name" validate:"required"`
 }
 
-func (server *Server) createTodo(c *fiber.Ctx) error {
-	var req CreateTodoRequest
+func (server *Server) createGroup(c *fiber.Ctx) error {
+	var req CreateGroupRequest
 	err := c.BodyParser(&req)
 	if err != nil {
 		fmt.Println(err)
@@ -31,20 +27,14 @@ func (server *Server) createTodo(c *fiber.Ctx) error {
 	if !ok {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, "Locals authorization_payload error")
 	}
-
-	arg := db.CreateTodoTxParams{
-		UserID:   payload.UserID,
-		TodoName: req.TodoName,
-		GroupID:  req.GroupID,
-		Deadline: req.Deadline,
-	}
-
-	result, err := server.store.CreateTodoTx(c.Context(), arg)
+	result, err := server.store.CreateGroupTx(c.Context(), db.CreateGroupTxParams{
+		UserID:    payload.UserID,
+		GroupName: req.GroupName,
+	})
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return utils.ErrorResponse(c, fiber.StatusUnauthorized, "You don't belong to that group")
-		}
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
 	}
+
 	return c.JSON(result)
+
 }
