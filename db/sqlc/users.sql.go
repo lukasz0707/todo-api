@@ -18,7 +18,7 @@ INSERT INTO users (
   email
 ) VALUES (
     $1, $2, $3, $4, $5
-) RETURNING id, username, hashed_password, first_name, last_name, email, password_changed_at, created_at, is_blocked
+) RETURNING id, username, hashed_password, first_name, last_name, email, role, password_changed_at, created_at, is_blocked
 `
 
 type CreateUserParams struct {
@@ -45,6 +45,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.FirstName,
 		&i.LastName,
 		&i.Email,
+		&i.Role,
 		&i.PasswordChangedAt,
 		&i.CreatedAt,
 		&i.IsBlocked,
@@ -53,7 +54,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, username, hashed_password, first_name, last_name, email, password_changed_at, created_at, is_blocked FROM users
+SELECT id, username, hashed_password, first_name, last_name, email, role, password_changed_at, created_at, is_blocked FROM users
 WHERE id = $1 LIMIT 1
 `
 
@@ -67,6 +68,7 @@ func (q *Queries) GetUserByID(ctx context.Context, id int64) (User, error) {
 		&i.FirstName,
 		&i.LastName,
 		&i.Email,
+		&i.Role,
 		&i.PasswordChangedAt,
 		&i.CreatedAt,
 		&i.IsBlocked,
@@ -75,7 +77,7 @@ func (q *Queries) GetUserByID(ctx context.Context, id int64) (User, error) {
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT id, username, hashed_password, first_name, last_name, email, password_changed_at, created_at, is_blocked FROM users
+SELECT id, username, hashed_password, first_name, last_name, email, role, password_changed_at, created_at, is_blocked FROM users
 WHERE username = $1 LIMIT 1
 `
 
@@ -89,6 +91,7 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 		&i.FirstName,
 		&i.LastName,
 		&i.Email,
+		&i.Role,
 		&i.PasswordChangedAt,
 		&i.CreatedAt,
 		&i.IsBlocked,

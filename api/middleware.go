@@ -53,9 +53,8 @@ func authAdmin() fiber.Handler {
 		if !ok {
 			return utils.ErrorResponse(c, fiber.StatusInternalServerError, "Locals authorization_payload error")
 		}
-		payloadUserID := payload.UserID
 
-		if payloadUserID != 1 {
+		if payload.Role != "admin" {
 			return utils.ErrorResponse(c, fiber.StatusUnauthorized, "you don't have permissions to access that data")
 		}
 		return c.Next()

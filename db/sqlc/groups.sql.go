@@ -11,21 +11,15 @@ import (
 
 const createGroup = `-- name: CreateGroup :one
 INSERT INTO groups (
-  group_name,
-  owner_id
+  group_name
 ) VALUES (
-    $1, $2
-)RETURNING id, group_name, owner_id
+    $1
+)RETURNING id, group_name
 `
 
-type CreateGroupParams struct {
-	GroupName string `json:"group_name"`
-	OwnerID   int64  `json:"owner_id"`
-}
-
-func (q *Queries) CreateGroup(ctx context.Context, arg CreateGroupParams) (Group, error) {
-	row := q.db.QueryRowContext(ctx, createGroup, arg.GroupName, arg.OwnerID)
+func (q *Queries) CreateGroup(ctx context.Context, groupName string) (Group, error) {
+	row := q.db.QueryRowContext(ctx, createGroup, groupName)
 	var i Group
-	err := row.Scan(&i.ID, &i.GroupName, &i.OwnerID)
+	err := row.Scan(&i.ID, &i.GroupName)
 	return i, err
 }

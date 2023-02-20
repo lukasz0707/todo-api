@@ -38,7 +38,7 @@ func NewServer(config utils.Config, store db.Store) (*Server, error) {
 func (server *Server) setupRouter() *fiber.App {
 	app := fiber.New()
 	app.Use(logger.New())
-	app.Use(cors.New())
+	app.Use(cors.New(cors.Config{AllowOrigins: "http://localhost:5173", AllowCredentials: true}))
 	app.Get("/v1/", func(c *fiber.Ctx) error {
 		return c.SendString("All good :)")
 	})
@@ -50,7 +50,7 @@ func (server *Server) setupRouter() *fiber.App {
 	appAuth.Get("/users/:id", server.getUserByID)
 	appAuth.Post("/todo_and_group", server.createTodoAndGroup)
 
-	appAdmin := appAuth.Group("/", authAdmin())
+	appAdmin := app.Group("/v1/admin", authMiddleware(server.tokenMaker), authAdmin())
 	appAdmin.Get("/metrics", monitor.New(monitor.Config{Title: "TodoApi Metrics Page"}))
 
 	return app

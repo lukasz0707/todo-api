@@ -1,7 +1,6 @@
 -- name: CreateGroup :one
 INSERT INTO groups (
-  group_name,
-  owner_id
+  group_name
 ) VALUES (
-    $1, $2
+    $1
 )RETURNING *;

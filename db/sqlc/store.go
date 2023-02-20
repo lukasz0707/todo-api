@@ -63,10 +63,7 @@ func (store *SQLStore) CreateTodoTx(ctx context.Context, arg CreateTodoTxParams)
 	var result CreateTodoTxResult
 	err := store.execTx(ctx, func(q *Queries) error {
 		var err error
-		result.Group, err = q.CreateGroup(ctx, CreateGroupParams{
-			GroupName: arg.GroupName,
-			OwnerID:   arg.UserID,
-		})
+		result.Group, err = q.CreateGroup(ctx, arg.GroupName)
 		if err != nil {
 			return err
 		}

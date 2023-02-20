@@ -16,11 +16,12 @@ func TestJWTMaker(t *testing.T) {
 	userID := utils.RandomInt(1, 100)
 	duration := time.Minute
 	tokenType := "access_token"
+	role := "user"
 
 	issuedAt := time.Now()
 	expiredAt := issuedAt.Add(duration)
 
-	token, payload, err := maker.CreateToken(userID, tokenType, duration)
+	token, payload, err := maker.CreateToken(userID, tokenType, duration, role)
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
 	require.NotEmpty(t, payload)
@@ -31,6 +32,7 @@ func TestJWTMaker(t *testing.T) {
 
 	require.NotZero(t, payload.ID)
 	require.Equal(t, userID, payload.UserID)
+	require.Equal(t, role, payload.Role)
 	require.WithinDuration(t, issuedAt, payload.IssuedAt, time.Second)
 	require.WithinDuration(t, expiredAt, payload.ExpiredAt, time.Second)
 }
@@ -39,7 +41,7 @@ func TestExpiredJWTToken(t *testing.T) {
 	maker, err := NewJWTMaker(utils.RandomString(32))
 	require.NoError(t, err)
 
-	token, payload, err := maker.CreateToken(utils.RandomInt(1, 100), "access_token", -time.Minute)
+	token, payload, err := maker.CreateToken(utils.RandomInt(1, 100), "access_token", -time.Minute, "user")
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
 	require.NotEmpty(t, payload)
@@ -51,7 +53,7 @@ func TestExpiredJWTToken(t *testing.T) {
 }
 
 func TestInvalidJWTTokenAlgNone(t *testing.T) {
-	payload, err := NewPayload(utils.RandomInt(1, 100), "access_token", time.Minute)
+	payload, err := NewPayload(utils.RandomInt(1, 100), "access_token", time.Minute, "user")
 	require.NoError(t, err)
 
 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodNone, payload)
@@ -65,4 +67,25 @@ func TestInvalidJWTTokenAlgNone(t *testing.T) {
 	require.Error(t, err)
 	require.EqualError(t, err, ErrInvalidToken.Error())
 	require.Nil(t, payload)
+}
+
+func TestInvalidRole(t *testing.T) {
+	maker, err := NewJWTMaker(utils.RandomString(32))
+	require.NoError(t, err)
+
+	userID := utils.RandomInt(1, 100)
+	duration := time.Minute
+	tokenType := "access_token"
+	role := "userinho"
+
+	token, payload, err := maker.CreateToken(userID, tokenType, duration, role)
+	require.NoError(t, err)
+	require.NotEmpty(t, token)
+	require.NotEmpty(t, payload)
+
+	payload, err = maker.VerifyToken(token)
+	require.Error(t, err)
+	require.EqualError(t, err, ErrInvalidRole.Error())
+	require.Nil(t, payload)
+
 }

@@ -5,3 +5,11 @@ INSERT INTO users_groups (
 ) VALUES (
     $1, $2
 )RETURNING *;
+-- name: AssignOwnerToGroup :one
+INSERT INTO users_groups (
+  user_id,
+  group_id,
+  role
+) VALUES (
+    $1, $2, 'owner'
+)RETURNING *;

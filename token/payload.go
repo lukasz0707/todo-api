@@ -11,6 +11,7 @@ import (
 var (
 	ErrInvalidToken = errors.New("token is invalid")
 	ErrExpiredToken = errors.New("token has expired")
+	ErrInvalidRole  = errors.New("token role is invalid")
 )
 
 // Payload contains the payload data of the token
@@ -20,10 +21,11 @@ type Payload struct {
 	IssuedAt  time.Time `json:"issued_at"`
 	ExpiredAt time.Time `json:"expired_at"`
 	TokenType string    `json:"token_type"`
+	Role      string    `json:"role"`
 }
 
 // NewPayload creates a new token payload with a specific username and duration
-func NewPayload(userID int64, tokenType string, duration time.Duration) (*Payload, error) {
+func NewPayload(userID int64, tokenType string, duration time.Duration, role string) (*Payload, error) {
 	tokenID, err := uuid.NewRandom()
 	if err != nil {
 		return nil, err
@@ -35,6 +37,7 @@ func NewPayload(userID int64, tokenType string, duration time.Duration) (*Payloa
 		IssuedAt:  time.Now(),
 		ExpiredAt: time.Now().Add(duration),
 		TokenType: tokenType,
+		Role:      role,
 	}
 	return payload, nil
 }
@@ -43,6 +46,9 @@ func NewPayload(userID int64, tokenType string, duration time.Duration) (*Payloa
 func (payload *Payload) Valid() error {
 	if time.Now().After(payload.ExpiredAt) {
 		return ErrExpiredToken
+	}
+	if payload.Role != "user" && payload.Role != "moderator" && payload.Role != "admin" {
+		return ErrInvalidRole
 	}
 	return nil
 }

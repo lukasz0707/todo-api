@@ -11,8 +11,9 @@ import (
 )
 
 type Querier interface {
+	AssignOwnerToGroup(ctx context.Context, arg AssignOwnerToGroupParams) (UsersGroup, error)
 	AssignUserToGroup(ctx context.Context, arg AssignUserToGroupParams) (UsersGroup, error)
-	CreateGroup(ctx context.Context, arg CreateGroupParams) (Group, error)
+	CreateGroup(ctx context.Context, groupName string) (Group, error)
 	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
 	CreateTodo(ctx context.Context, arg CreateTodoParams) (Todo, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)

@@ -9,9 +9,9 @@ import (
 	"github.com/lukasz0707/todo-api/utils"
 )
 
-type renewAccessTokenRequest struct {
-	RefreshToken string `json:"refresh_token" validate:"required"`
-}
+// type renewAccessTokenRequest struct {
+// 	RefreshToken string `json:"refresh_token" validate:"required"`
+// }
 
 type renewAccessTokenResponse struct {
 	AccessToken          string    `json:"access_token"`
@@ -19,13 +19,13 @@ type renewAccessTokenResponse struct {
 }
 
 func (server *Server) renewAccessToken(c *fiber.Ctx) error {
-	var req renewAccessTokenRequest
-	err := c.BodyParser(&req)
-	if err != nil {
-		return utils.ErrorResponse(c, fiber.StatusBadRequest, utils.ErrorWrapper("cannot parse json", err))
+	// var req renewAccessTokenRequest
+	refreshToken := c.Cookies("refresh_token")
+	if refreshToken == "" {
+		return utils.ErrorResponse(c, fiber.StatusBadRequest, "refresh_token cookie not provided")
 	}
 
-	refreshPayload, err := server.tokenMaker.VerifyToken(req.RefreshToken)
+	refreshPayload, err := server.tokenMaker.VerifyToken(refreshToken)
 	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusUnauthorized, err.Error())
 	}
@@ -45,7 +45,7 @@ func (server *Server) renewAccessToken(c *fiber.Ctx) error {
 		return utils.ErrorResponse(c, fiber.StatusUnauthorized, "incorrect session user")
 	}
 
-	if session.RefreshToken != req.RefreshToken {
+	if session.RefreshToken != refreshToken {
 		return utils.ErrorResponse(c, fiber.StatusUnauthorized, "mismatched session token")
 	}
 
@@ -53,7 +53,7 @@ func (server *Server) renewAccessToken(c *fiber.Ctx) error {
 		return utils.ErrorResponse(c, fiber.StatusUnauthorized, "expired session")
 	}
 
-	accessToken, accessPayload, err := server.tokenMaker.CreateToken(refreshPayload.UserID, "access_token", server.config.AccessTokenDuration)
+	accessToken, accessPayload, err := server.tokenMaker.CreateToken(refreshPayload.UserID, "access_token", server.config.AccessTokenDuration, refreshPayload.Role)
 	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
 	}
