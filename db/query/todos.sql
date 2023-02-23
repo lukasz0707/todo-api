@@ -7,5 +7,8 @@ INSERT INTO todos (
     $1, $2, $3
 ) RETURNING *;
 
--- name: GetTodos :many
-SELECT * FROM todos WHERE group_id = $1;
+-- name: GetTodosByGroupID :many
+SELECT * FROM todos WHERE todos.group_id IN (SELECT users_groups.group_id FROM users_groups WHERE user_id = $1 and users_groups.group_id = $2);
+
+-- name: GetTodosByUserID :many
+SELECT * FROM todos WHERE group_id IN (SELECT group_id FROM users_groups WHERE user_id = $1);

@@ -18,12 +18,14 @@ type Querier interface {
 	CreateTodo(ctx context.Context, arg CreateTodoParams) (Todo, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteSession(ctx context.Context, id uuid.UUID) error
+	GetFromUsersGroups(ctx context.Context, arg GetFromUsersGroupsParams) (UsersGroup, error)
+	GetGroupsByUserID(ctx context.Context, userID int64) ([]Group, error)
 	GetSession(ctx context.Context, id uuid.UUID) (Session, error)
 	GetSessionByUserID(ctx context.Context, userID int64) (Session, error)
-	GetTodos(ctx context.Context, groupID int64) ([]Todo, error)
+	GetTodosByGroupID(ctx context.Context, arg GetTodosByGroupIDParams) ([]Todo, error)
+	GetTodosByUserID(ctx context.Context, userID int64) ([]Todo, error)
 	GetUserByID(ctx context.Context, id int64) (User, error)
 	GetUserByUsername(ctx context.Context, username string) (User, error)
-	SelectFromUsersGroups(ctx context.Context, arg SelectFromUsersGroupsParams) (UsersGroup, error)
 }
 
 var _ Querier = (*Queries)(nil)

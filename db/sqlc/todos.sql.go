@@ -40,12 +40,51 @@ func (q *Queries) CreateTodo(ctx context.Context, arg CreateTodoParams) (Todo, e
 	return i, err
 }
 
-const getTodos = `-- name: GetTodos :many
-SELECT id, group_id, todo_name, created_at, status, deadline FROM todos WHERE group_id = $1
+const getTodosByGroupID = `-- name: GetTodosByGroupID :many
+SELECT id, group_id, todo_name, created_at, status, deadline FROM todos WHERE todos.group_id IN (SELECT users_groups.group_id FROM users_groups WHERE user_id = $1 and users_groups.group_id = $2)
 `
 
-func (q *Queries) GetTodos(ctx context.Context, groupID int64) ([]Todo, error) {
-	rows, err := q.db.QueryContext(ctx, getTodos, groupID)
+type GetTodosByGroupIDParams struct {
+	UserID  int64 `json:"user_id"`
+	GroupID int64 `json:"group_id"`
+}
+
+func (q *Queries) GetTodosByGroupID(ctx context.Context, arg GetTodosByGroupIDParams) ([]Todo, error) {
+	rows, err := q.db.QueryContext(ctx, getTodosByGroupID, arg.UserID, arg.GroupID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Todo{}
+	for rows.Next() {
+		var i Todo
+		if err := rows.Scan(
+			&i.ID,
+			&i.GroupID,
+			&i.TodoName,
+			&i.CreatedAt,
+			&i.Status,
+			&i.Deadline,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getTodosByUserID = `-- name: GetTodosByUserID :many
+SELECT id, group_id, todo_name, created_at, status, deadline FROM todos WHERE group_id IN (SELECT group_id FROM users_groups WHERE user_id = $1)
+`
+
+func (q *Queries) GetTodosByUserID(ctx context.Context, userID int64) ([]Todo, error) {
+	rows, err := q.db.QueryContext(ctx, getTodosByUserID, userID)
 	if err != nil {
 		return nil, err
 	}

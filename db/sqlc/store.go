@@ -64,7 +64,7 @@ func (store *SQLStore) CreateTodoTx(ctx context.Context, arg CreateTodoTxParams)
 	err := store.execTx(ctx, func(q *Queries) error {
 		var err error
 
-		result.UserGroup, err = q.SelectFromUsersGroups(ctx, SelectFromUsersGroupsParams{
+		result.UserGroup, err = q.GetFromUsersGroups(ctx, GetFromUsersGroupsParams{
 			UserID:  arg.UserID,
 			GroupID: arg.GroupID,
 		})

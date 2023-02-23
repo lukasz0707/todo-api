@@ -48,3 +48,47 @@ func (server *Server) createTodo(c *fiber.Ctx) error {
 	}
 	return c.JSON(result)
 }
+
+func (server *Server) GetTodosByUserID(c *fiber.Ctx) error {
+
+	payload, ok := c.Locals("authorization_payload").(*token.Payload)
+	if !ok {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, "Locals authorization_payload error")
+	}
+
+	result, err := server.store.GetTodosByUserID(c.Context(), payload.UserID)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
+	}
+	return c.JSON(result)
+}
+
+type GetTodosByGroupIDRequest struct {
+	GroupID int64 `json:"group_id"`
+}
+
+func (server *Server) GetTodosByGroupID(c *fiber.Ctx) error {
+	var req GetTodosByGroupIDRequest
+	err := c.BodyParser(&req)
+	if err != nil {
+		fmt.Println(err)
+		return utils.ErrorResponse(c, fiber.StatusBadRequest, "cannot parse json")
+	}
+	if err := utils.Validate(req); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusBadRequest, err.Error())
+	}
+
+	payload, ok := c.Locals("authorization_payload").(*token.Payload)
+	if !ok {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, "Locals authorization_payload error")
+	}
+
+	result, err := server.store.GetTodosByGroupID(c.Context(), db.GetTodosByGroupIDParams{
+		UserID:  payload.UserID,
+		GroupID: req.GroupID,
+	})
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
+	}
+	return c.JSON(result)
+}

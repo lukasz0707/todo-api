@@ -62,17 +62,17 @@ func (q *Queries) AssignUserToGroup(ctx context.Context, arg AssignUserToGroupPa
 	return i, err
 }
 
-const selectFromUsersGroups = `-- name: SelectFromUsersGroups :one
+const getFromUsersGroups = `-- name: GetFromUsersGroups :one
 SELECT id, user_id, group_id, role FROM users_groups WHERE user_id = $1 AND group_id = $2
 `
 
-type SelectFromUsersGroupsParams struct {
+type GetFromUsersGroupsParams struct {
 	UserID  int64 `json:"user_id"`
 	GroupID int64 `json:"group_id"`
 }
 
-func (q *Queries) SelectFromUsersGroups(ctx context.Context, arg SelectFromUsersGroupsParams) (UsersGroup, error) {
-	row := q.db.QueryRowContext(ctx, selectFromUsersGroups, arg.UserID, arg.GroupID)
+func (q *Queries) GetFromUsersGroups(ctx context.Context, arg GetFromUsersGroupsParams) (UsersGroup, error) {
+	row := q.db.QueryRowContext(ctx, getFromUsersGroups, arg.UserID, arg.GroupID)
 	var i UsersGroup
 	err := row.Scan(
 		&i.ID,

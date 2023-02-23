@@ -42,6 +42,7 @@ func (server *Server) setupRouter() *fiber.App {
 	app.Get("/v1/", func(c *fiber.Ctx) error {
 		return c.SendString("All good :)")
 	})
+
 	app.Post("/v1/users", server.createUser)
 	app.Post("/v1/users/login", server.loginUser)
 	app.Post("/v1/tokens/renew_access", server.renewAccessToken)
@@ -50,6 +51,8 @@ func (server *Server) setupRouter() *fiber.App {
 	appAuth.Get("/users/:id", server.getUserByID)
 	appAuth.Post("/group", server.createGroup)
 	appAuth.Post("/todo", server.createTodo)
+	appAuth.Get("/todo_by_user_id", server.GetTodosByUserID)
+	appAuth.Get("/todo_by_group_id", server.GetTodosByGroupID)
 
 	appAdmin := app.Group("/v1/admin", authMiddleware(server.tokenMaker), authAdmin())
 	appAdmin.Get("/metrics", monitor.New(monitor.Config{Title: "TodoApi Metrics Page"}))
